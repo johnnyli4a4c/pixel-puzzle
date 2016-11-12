@@ -6,7 +6,8 @@
         }
         .container {
             margin: 0 auto;
-            width: 800px;
+            width: 860px;
+            height: 475px;
         }
         #board {
             float: left;
@@ -19,8 +20,8 @@
             float: left;
             background: #EEE;
             margin: 2px;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
         }
         .hint-top {
             margin-left: 100px;
@@ -33,14 +34,14 @@
         .hint-cell-left {
             float: left;
             width: 94px;
-            height: 20px;
+            height: 18px;
             text-align: left;
         }
         .hint-cell-top {
             text-align: center;
             float: left;
             height: 120px;
-            width: 20px;
+            width: 18px;
         }
         .hint-left {
             float:left;
@@ -58,7 +59,8 @@
             background: #AAA;
         }
         #solution {
-            float: right;
+            float: left;
+            margin-left: 40px;
             display: none;
         }
         #solution.show {
@@ -70,11 +72,15 @@
         .deactivate {
             background: #AA0000;
         }
+        #controls {
+            margin: 20px auto;
+            width: 800px;
+        }
     </style>
 </head>
 <body>
     <h1>Pixel Puzzle - βeta</h1>
-    <div class="container">
+    <div class="container clearfix">
         <div id="hint-top" class="hint-top clearfix">
             <div class="hint-cell hint-cell-top">
                 1<br/>
@@ -102,23 +108,13 @@
             </div>
         </div>
         <div id="solution" class="solution"></div>
-        <button id="newPuzzle" style="margin-left:10px;" >New Puzzle</button>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
-        <button id="showSolution" style="margin-left:10px;" >Show Solution</button>
     </div>
-        
+    <div id="controls">
+        <button class="newPuzzle" data-difficulty="5" style="margin-left:10px;background:#42e5f4" >New Easy Puzzle</button>
+        <button class="newPuzzle" data-difficulty="8" style="margin-left:10px;background:#e5f92c" >New Normal Puzzle</button>
+        <button class="newPuzzle" data-difficulty="10" style="margin-left:10px;background:#e52222;color:#FFF" >New Hard Puzzle</button>
+        <button class="newPuzzle" data-difficulty="15" style="margin-left:10px;background:#47073d;color:#FFF" >New Impossible Puzzle</button>
+        <button id="showSolution" style="margin-left:10px;opacity:0.5" >Show Solution</button>
     </div>
     <script>
         var PP = (function () {
@@ -126,6 +122,7 @@
             var topHintElement = document.getElementById('hint-top');
             var leftHintElement = document.getElementById('hint-left');
             var showSolutionButton = document.getElementById('showSolution');
+            var controls = document.getElementById('controls');
             var solution = document.getElementById('solution');
             var newPuzzleButton = document.getElementById('newPuzzle')
             var puzzle;
@@ -134,8 +131,8 @@
             var topHintsState;
             var leftHints;
             var leftHintsState;
-            var puzzleWidth = 10;
-            var puzzleHeight = 10;
+            var puzzleWidth = 5;
+            var puzzleHeight = 5;
             
             var checkWinCondition = function () {
                 return checkTopHints() && checkLeftHints();
@@ -284,7 +281,7 @@
                 for (var i=0; i < height; i++) {
                     puzzle.push(new Array());
                     for (var j=0; j < width; j++) {
-                        puzzle[i][j] = Math.random() > 0.5
+                        puzzle[i][j] = Math.random() > 0.4
                     }
                 }
                 return puzzle;
@@ -465,7 +462,9 @@
                     }
                 }
             }
-            var initializeGame = function () {
+            var initializeGame = function (width, height) {
+                puzzleWidth = width ? width : puzzleWidth;
+                puzzleHeight = height ? height : puzzleHeight;
                 puzzle = generatePuzzle(puzzleWidth,puzzleHeight);
                 // puzzle = [[true, true, true], [true, true, true], [true, true, true]];
                 // puzzle = [[false, false, false], [false, false, false], [false, false, true]];
@@ -490,8 +489,11 @@
                 updateLeftHintsState();  
             }
             initializeGame();
-            newPuzzleButton.addEventListener('click', function (e) {
-                initializeGame();
+            controls.addEventListener('click', function (e) {
+                var difficulty;
+                if (!e.target.classList.contains('newPuzzle')) return;
+                difficulty = e.target.getAttribute('data-difficulty') ? e.target.getAttribute('data-difficulty') : 5
+                initializeGame(difficulty, difficulty);
             })
             showSolutionButton.addEventListener('click', function (e) {
                 solution.classList.toggle('show');
