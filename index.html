@@ -1,6 +1,9 @@
 <html>
 <head>
     <style>
+        h1 {
+            text-align: center;
+        }
         .container {
             margin: 0 auto;
             width: 800px;
@@ -54,12 +57,23 @@
         .active {
             background: #AAA;
         }
+        #solution {
+            float: right;
+            display: none;
+        }
+        #solution.show {
+            display: block;
+        }
+        #solution .active {
+            background: #00AA00;
+        }
         .deactivate {
-            background: #FF0000;
+            background: #AA0000;
         }
     </style>
 </head>
 <body>
+    <h1>Pixel Puzzle - βeta</h1>
     <div class="container">
         <div id="hint-top" class="hint-top clearfix">
             <div class="hint-cell hint-cell-top">
@@ -87,12 +101,18 @@
                 <div class="cell active"></div>
             </div>
         </div>
+        <div id="solution" class="solution"></div>
+        <button id="showSolution" style="margin-left:10px;" >Show Solution</button>
+    </div>
+        
     </div>
     <script>
         var PP = (function () {
             var boardElement = document.getElementById('board');
             var topHintElement = document.getElementById('hint-top');
             var leftHintElement = document.getElementById('hint-left');
+            var showSolutionButton = document.getElementById('showSolution');
+            var solution = document.getElementById('solution');
             var puzzle;
             var grid;
             var topHints;
@@ -246,7 +266,6 @@
                         puzzle[i][j] = Math.random() > 0.5
                     }
                 }
-                console.log(puzzle);
                 return puzzle;
             }
 
@@ -357,6 +376,26 @@
                 return cell;
             }
 
+            var generateSolution = function () {
+                var newSolution = document.createElement('div');
+                var cell;
+                var row;
+                newSolution.id = 'solution';
+                for (var i=0; i < puzzleHeight; i++) {
+                    row = generateBoardRow();
+                    for (var j=0; j < puzzleWidth; j++) {
+                        cell = generateBoardCell();
+                        if (puzzle[i][j]) {
+                            cell.classList.add('active');
+                        }
+                        row.appendChild(cell);
+                    }
+                    newSolution.appendChild(row);
+                }
+                solution.parentNode.replaceChild(newSolution, solution);
+                solution = newSolution;
+            };
+
             var generateBoard = function (width, height) {
                 var newBoard = document.createElement('div');
                 var cell;
@@ -425,35 +464,41 @@
                 generateTopHints(puzzleWidth,puzzleHeight)
                 generateLeftHints(puzzleWidth,puzzleHeight)
                 generateBoard(puzzleWidth,puzzleHeight);
+                generateSolution();
                 updateTopHintsState();
                 updateLeftHintsState();  
             }
             initializeGame();
+            showSolutionButton.addEventListener('click', function (e) {
+                solution.classList.toggle('show');
+            });
             window.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
                 if (!e.target.classList.contains('cell')) return;
                 if (e.target.classList.contains('active')) return;
+                while (target.parentNode !== document) {
+                    if (target.parentNode.getAttribute('id') === 'solution') return
+                    target = target.parentNode;
+                }
                 e.target.classList.toggle('deactivate');
             })
             window.addEventListener('click', function (e) {
                 var row,
                     col;
+                    target = e.target;
                 if (!e.target.classList.contains('cell')) return;
+                while (target.parentNode !== document) {
+                    if (target.parentNode.getAttribute('id') === 'solution') return
+                    target = target.parentNode;
+                }
                 if (e.target.classList.contains('deactivate')) return;
                 e.target.classList.toggle('active');
                 row = e.target.getAttribute('data-row');
                 col = e.target.getAttribute('data-col');
-                // console.log(row)
-                // console.log(col)
-                // console.log(grid);
 
                 grid[row][col] = !grid[row][col]
-                // console.log(grid);
-                // console.log(e.target);
                 updateTopHintsState();
-                console.log("TOP", topHintsState)
                 updateLeftHintsState();
-                console.log("LEFT", leftHintsState)
                 if (checkWinCondition()) {
                     setTimeout(function () {
                         alert("YOU WIN");
