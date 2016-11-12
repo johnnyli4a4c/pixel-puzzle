@@ -102,6 +102,20 @@
             </div>
         </div>
         <div id="solution" class="solution"></div>
+        <button id="newPuzzle" style="margin-left:10px;" >New Puzzle</button>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
         <button id="showSolution" style="margin-left:10px;" >Show Solution</button>
     </div>
         
@@ -113,6 +127,7 @@
             var leftHintElement = document.getElementById('hint-left');
             var showSolutionButton = document.getElementById('showSolution');
             var solution = document.getElementById('solution');
+            var newPuzzleButton = document.getElementById('newPuzzle')
             var puzzle;
             var grid;
             var topHints;
@@ -469,6 +484,9 @@
                 updateLeftHintsState();  
             }
             initializeGame();
+            newPuzzleButton.addEventListener('click', function (e) {
+                initializeGame();
+            })
             showSolutionButton.addEventListener('click', function (e) {
                 solution.classList.toggle('show');
             });
@@ -502,7 +520,6 @@
                 if (checkWinCondition()) {
                     setTimeout(function () {
                         alert("YOU WIN");
-                        initializeGame();
                     }, 200);
                 }
             })
