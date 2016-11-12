@@ -229,6 +229,9 @@
                         currentCell++;
                     }
                 }
+                for (var i=currentCell; i < puzzleHeight; i++) {
+                    if (grid[i][hintIndex]) return false
+                }
                 return true
             }
 
@@ -269,6 +272,9 @@
                         }
                         currentCell++;
                     }
+                }
+                for (var i=currentCell; i < puzzleWidth; i++) {
+                    if (grid[hintIndex][i]) return false
                 }
                 return true
             }
