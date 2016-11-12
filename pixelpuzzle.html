@@ -1,0 +1,471 @@
+<html>
+<head>
+    <style>
+        .container {
+            margin: 0 auto;
+            width: 800px;
+        }
+        #board {
+            float: left;
+        }
+        .row {
+            height: 24px;
+        }
+        .cell {
+            border: 1px solid #000;
+            float: left;
+            background: #EEE;
+            margin: 2px;
+            width: 20px;
+            height: 20px;
+        }
+        .hint-top {
+            margin-left: 100px;
+        }
+        .hint-cell {
+            border: 1px solid #000;
+            margin: 2px;
+            background: #EEE;
+        }
+        .hint-cell-left {
+            float: left;
+            width: 94px;
+            height: 20px;
+            text-align: left;
+        }
+        .hint-cell-top {
+            text-align: center;
+            float: left;
+            height: 120px;
+            width: 20px;
+        }
+        .hint-left {
+            float:left;
+            height: 20px;
+            width: 100px;
+        }
+        .clearfix:after {
+           content: " ";
+           visibility: hidden;
+           display: block;
+           height: 0;
+           clear: both;
+        }
+        .active {
+            background: #AAA;
+        }
+        .deactivate {
+            background: #FF0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="hint-top" class="hint-top clearfix">
+            <div class="hint-cell hint-cell-top">
+                1<br/>
+                1<br/>
+                1<br/>
+            </div>
+            <div class="hint-cell hint-cell-top">
+                1<br/>
+                1<br/>
+                1<br/>
+            </div>
+        </div>
+        <div id="hint-left" class="hint-left clearfix">
+            <div class="hint-cell hint-cell-left">1 1 1</div>
+            <div class="hint-cell hint-cell-left">1 1</div>
+        </div>
+        <div id="board">
+            <div class="row clearfix">
+                <div class="cell active"></div>
+                <div class="cell"></div>
+            </div>
+            <div class="row clearfix">
+                <div class="cell"></div>
+                <div class="cell active"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var PP = (function () {
+            var boardElement = document.getElementById('board');
+            var topHintElement = document.getElementById('hint-top');
+            var leftHintElement = document.getElementById('hint-left');
+            var puzzle;
+            var grid;
+            var topHints;
+            var topHintsState;
+            var leftHints;
+            var leftHintsState;
+            var puzzleWidth = 5;
+            var puzzleHeight = 5;
+            
+            var checkWinCondition = function () {
+                return checkTopHints() && checkLeftHints();
+            }
+            var checkTopHints = function () {
+                for (var i=0; i < topHintsState.length; i++) {
+                    if (!topHintsState[i]) return false;
+                }
+                return true;
+            }
+            var checkLeftHints = function () {
+                for (var i=0; i < leftHintsState.length; i++) {
+                    if (!leftHintsState[i]) return false;
+                }
+                return true;
+            }
+            var updateTopHintsState = function (index) {
+                var arr = [];
+                if (index) {
+                    topHintsState[index] = checkTopHint(index);
+                } else {
+                    for (var i=0; i < topHints.length; i++) {
+                        arr.push(checkTopHint(i));
+                        if (checkTopHint(i)) {
+                            topHintElement.childNodes[i].classList.add('active')
+                        } else {
+                            if (topHintElement.childNodes[i]) {
+                                topHintElement.childNodes[i].classList.remove('active')
+                            }
+                        }
+                    }
+                }
+                return topHintsState = arr;
+
+            }
+            var updateLeftHintsState = function (index) {
+                var arr = [];
+                if (index) {
+                    leftHintsState[index] = checkLeftHint(index);
+                } else {
+                    for (var i=0; i < leftHints.length; i++) {
+                        arr.push(checkLeftHint(i));
+                        if (checkLeftHint(i)) {
+                            leftHintElement.childNodes[i].classList.add('active')
+                        } else {
+                            if (leftHintElement.childNodes[i]) {
+                                leftHintElement.childNodes[i].classList.remove('active')
+                            }
+                        }
+                    }
+                }
+                leftHintsState = arr;
+                return leftHintsState;
+
+            }
+            var checkTopHint = function (hintIndex) {
+                var currentCount = 0;
+                var currentCell = 0;
+                var topHintsLength = topHints[hintIndex].length;
+                var hints = topHints[hintIndex];
+
+                if (hintIndex < 0 || hintIndex > topHints.length - 1) throw "Invalid topHint Index";
+                if (topHintsLength === 0) return true;
+
+                for (var i=0; i < hints.length; i++) {
+                    currentCount = 0;
+                    for (var j=currentCell; j < puzzleHeight; j++) {
+                        if (grid[j][hintIndex]) {
+                            currentCount++;
+                        } else {
+                            if (currentCount !== hints[i] && currentCount !== 0) return false;
+                            if (currentCount !== hints[i] && currentCell === puzzleHeight - 1) return false;
+                            if (currentCount !== 0) break;
+                        }
+                        if (currentCount > hints[i]) return false;
+                        if (currentCount === hints[i] && currentCell !== puzzleHeight - 1) {
+                            if (!grid[currentCell + 1][hintIndex]) {
+                                currentCell++;
+                                break;
+                            } else {
+                                return false;
+                            }   
+                        }
+                        if (currentCell === puzzleHeight -1) {
+                            if (i === hints.length -1 && currentCount === hints[i]) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                        currentCell++;
+                    }
+                }
+                return true
+            }
+
+            var checkLeftHint = function (hintIndex) {
+                var currentCount = 0;
+                var currentCell = 0;
+                var leftHintsLength = leftHints[hintIndex].length;
+                var hints = leftHints[hintIndex];
+
+                if (hintIndex < 0 || hintIndex > leftHints.length - 1) throw "Invalid leftHint Index";
+                if (leftHintsLength === 0) return true;
+
+                for (var i=0; i < hints.length; i++) {
+                    currentCount = 0;
+                    for (var j=currentCell; j < puzzleWidth; j++) {
+                        if (grid[hintIndex][j]) {
+                            currentCount++;
+                        } else {
+                            if (currentCount !== hints[i] && currentCount !== 0) return false
+                            if (currentCount !== hints[i] && currentCell === puzzleWidth - 1) return false
+                            if (currentCount !== 0) break;
+                        }
+                        if (currentCount > hints[i]) return false
+                        if (currentCount === hints[i] && currentCell !== puzzleWidth - 1) {
+                            if (!grid[hintIndex][currentCell + 1]) {
+                                currentCell++;
+                                break;
+                            } else {
+                                return false;
+                            }   
+                        }
+                        if (currentCell === puzzleWidth -1) {
+                            if (i === hints.length -1 && currentCount === hints[i]) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                        currentCell++;
+                    }
+                }
+                return true
+            }
+
+            var generatePuzzle = function (width, height) {
+                var puzzle = [];
+                for (var i=0; i < height; i++) {
+                    puzzle.push(new Array());
+                    for (var j=0; j < width; j++) {
+                        puzzle[i][j] = Math.random() > 0.5
+                    }
+                }
+                console.log(puzzle);
+                return puzzle;
+            }
+
+            var initializeGrid = function (width, height) {
+                var grid = [];
+                for (var i=0; i < height; i++) {
+                    grid.push(new Array());
+                    for (var j=0; j < width; j++) {
+                        grid[i][j] = false
+                    }
+                }
+                return grid;
+            }
+
+            var getTopHints = function () {
+                var topHints = [];
+                for (var i=0; i < puzzle[0].length; i++) {
+                    topHints.push(getTopHint(i))
+                }
+                return topHints;
+            }
+
+            var getLeftHints = function () {
+                var leftHints = [];
+                for (var i=0; i < puzzle[0].length; i++) {
+                    leftHints.push(getLeftHint(i))
+                }
+                return leftHints;
+            }
+
+            var getTopHint = function (col) {
+                var topHint = [];
+                var count =  0;
+                for (var i=0; i < puzzle.length; i++) {
+                    if (puzzle[i][col]) {
+                        count++;
+                    }
+                    if (i === puzzle.length-1 || !puzzle[i][col]) {
+                        if (count !== 0) {
+                        topHint.push(count);
+
+                        }
+                        count = 0;
+                    } else {
+                        continue;
+                    }
+
+                }
+                return topHint;
+            }
+
+            var getLeftHint = function (row) {
+                var leftHint = [];
+                var count =  0;
+                for (var i=0; i < puzzle[0].length; i++) {
+                    if (puzzle[row][i]) {
+                        count++;
+                    }
+                    if (i === puzzle.length-1 || !puzzle[row][i]) {
+                        if (count !== 0) {
+                        leftHint.push(count);
+
+                        }
+                        count = 0;
+                    } else {
+                        continue;
+                    }
+
+                }
+                return leftHint;
+            }
+
+            var generateTopHintCell = function (col) {
+                var thcell = document.createElement('div');
+                thcell.classList.add('hint-cell', 'hint-cell-top')
+                if (topHints[col].length === 0) {
+                    thcell.innerHTML = thcell.innerHTML + '0';
+                    return thcell;
+                }
+                for (var i=0; i < topHints[col].length; i++) {
+                    thcell.innerHTML = thcell.innerHTML + topHints[col][i] + '<br/>';
+                }
+                return thcell;
+            }
+
+            var generateLeftHintCell = function (row) {
+                var lhcell = document.createElement('div');
+                lhcell.classList.add('hint-cell', 'hint-cell-left')
+                if (leftHints[row].length === 0) {
+                    lhcell.innerHTML = lhcell.innerHTML + '0' + '&nbsp;';
+                    return lhcell;
+                }
+                for (var i=0; i < leftHints[row].length; i++) {
+                    lhcell.innerHTML = lhcell.innerHTML + leftHints[row][i] + '&nbsp;';
+                }
+                return lhcell;
+            }
+
+            var generateBoardRow = function () {
+                var row = document.createElement('div');
+                row.classList.add('row', 'clearfix');
+                return row;
+            }
+
+            var generateBoardCell = function () {
+                var cell = document.createElement('div');
+                cell.classList.add('cell');
+                return cell;
+            }
+
+            var generateBoard = function (width, height) {
+                var newBoard = document.createElement('div');
+                var cell;
+                var row;
+                newBoard.id='board';
+                for (var i=0; i < height; i++) {
+                    row = generateBoardRow();
+                    for (var j=0; j < width; j++) {
+                        cell = generateBoardCell();
+                        cell.setAttribute('data-value', false);
+                        cell.setAttribute('data-row', i);
+                        cell.setAttribute('data-col', j);
+                        row.appendChild(cell);
+                    }
+                    newBoard.appendChild(row);
+                }
+                board.parentNode.replaceChild(newBoard, board);
+                board = newBoard;
+            };
+
+            var generateTopHints = function (width, height) {
+                var newTopHintElement = document.createElement('div');
+                newTopHintElement.classList.add('hint-top', 'clearfix');
+                newTopHintElement.id = 'hint-top';
+                for (var i=0; i < width; i++) {
+                    newTopHintElement.appendChild(generateTopHintCell(i));
+                }
+                topHintElement.parentNode.replaceChild(newTopHintElement, topHintElement)
+                topHintElement = newTopHintElement
+            };
+
+            var generateLeftHints = function (width, height) {
+                var newLeftHintElement = document.createElement('div');
+                newLeftHintElement.classList.add('hint-left', 'clearfix');
+                newLeftHintElement.id = 'hint-left';
+                for (var i=0; i < height; i++) {
+                    newLeftHintElement.appendChild(generateLeftHintCell(i));
+                }
+                leftHintElement.parentNode.replaceChild(newLeftHintElement, leftHintElement)
+                leftHintElement = newLeftHintElement
+            };
+            var clearGrid = function () {
+                for (var i=0; i < board.childNodes.length; i++) {
+                    for (var j=0; j < board.childNodes[i].childNodes.length; j++) {
+                        board.childNodes[i].childNodes[j].classList.remove('active');
+                    }
+                }
+            }
+            var initializeGame = function () {
+                puzzle = generatePuzzle(puzzleWidth,puzzleHeight);
+                // puzzle = [[true, true, true], [true, true, true], [true, true, true]];
+                // puzzle = [[false, false, false], [false, false, false], [false, false, true]];
+                // puzzle = [[false, true, true], [true, false, true], [false, true, true]];
+                // puzzle = [[false, true, true, true, false], [true, false, true, true, true], [true, true, true, true, true], [true, true, true, true, true], [false, true, true, false, false]];
+                grid = initializeGrid(puzzleWidth, puzzleHeight);
+                topHints = getTopHints();
+                leftHints = getLeftHints();
+
+                // leftH = (function() {
+                //     var arr = [];
+                //     for (var i=0; i < topHints.length; i++) {
+                //         arr[i] = checkTopHint(i);
+                //     }
+                //     return arr;
+                // })();
+                generateTopHints(puzzleWidth,puzzleHeight)
+                generateLeftHints(puzzleWidth,puzzleHeight)
+                generateBoard(puzzleWidth,puzzleHeight);
+                updateTopHintsState();
+                updateLeftHintsState();  
+            }
+            initializeGame();
+            window.addEventListener('contextmenu', function (e) {
+                e.preventDefault();
+                if (!e.target.classList.contains('cell')) return;
+                if (e.target.classList.contains('active')) return;
+                e.target.classList.toggle('deactivate');
+            })
+            window.addEventListener('click', function (e) {
+                var row,
+                    col;
+                if (!e.target.classList.contains('cell')) return;
+                if (e.target.classList.contains('deactivate')) return;
+                e.target.classList.toggle('active');
+                row = e.target.getAttribute('data-row');
+                col = e.target.getAttribute('data-col');
+                // console.log(row)
+                // console.log(col)
+                // console.log(grid);
+
+                grid[row][col] = !grid[row][col]
+                // console.log(grid);
+                // console.log(e.target);
+                updateTopHintsState();
+                console.log("TOP", topHintsState)
+                updateLeftHintsState();
+                console.log("LEFT", leftHintsState)
+                if (checkWinCondition()) {
+                    setTimeout(function () {
+                        alert("YOU WIN");
+                        initializeGame();
+                    }, 200);
+                }
+            })
+            return {
+                public: topHintElement
+            }
+        })();
+
+    </script>
+</body>
+</html>
