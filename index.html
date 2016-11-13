@@ -133,7 +133,11 @@
             var leftHintsState;
             var puzzleWidth = 5;
             var puzzleHeight = 5;
-            
+            var globalTouch = {
+                startX: 0,
+                startY: 0,
+                initialTarget: null
+            }
             var checkWinCondition = function () {
                 return checkTopHints() && checkLeftHints();
             }
@@ -462,19 +466,25 @@
                     }
                 }
             };
-            var clickHandler = function (e) {
+            var checkTargetIsCell = function (target) {
+                if (!target.classList.contains('cell')) return false;
+                while (target.parentNode !== document) {
+                    if (target.parentNode.getAttribute('id') === 'solution') return false
+                    target = target.parentNode;
+                }
+                if (target.classList.contains('deactivate')) return false;
+                return true;                
+            };
+            var activateCellHandler = function (e) {
                 var row,
                     col;
                     target = e.target;
-                if (!e.target.classList.contains('cell')) return;
-                while (target.parentNode !== document) {
-                    if (target.parentNode.getAttribute('id') === 'solution') return
-                    target = target.parentNode;
-                }
-                if (e.target.classList.contains('deactivate')) return;
-                e.target.classList.toggle('active');
-                row = e.target.getAttribute('data-row');
-                col = e.target.getAttribute('data-col');
+
+                if (!checkTargetIsCell(target)) return;
+
+                target.classList.toggle('active');
+                row = target.getAttribute('data-row');
+                col = target.getAttribute('data-col');
 
                 grid[row][col] = !grid[row][col]
                 updateTopHintsState();
@@ -485,6 +495,23 @@
                     }, 200);
                 }
             };
+            var touchStartHandler = function (e) {
+                var target = e.target;
+                var touchObj = e.changedTouches[0];
+                if (!checkTargetIsCell(target)) return;
+                globalTouch.startX = parseInt(e.clientX);
+                globalTouch.initialTarget = target;
+
+            }
+            var touchMoveHandler = function (e) {
+                var touchObj = e.changedTouches[0];
+                var dist = parseInt(touchObj.clientX) - globalTouch.startX;
+                e.preventDefault();
+            }
+            var touchEndHandler = function (e) {
+                if (e.target !== globalTouch.initialTarget) return;
+                activateCellHandler();
+            }
             var initializeGame = function (width, height) {
                 puzzleWidth = width ? width : puzzleWidth;
                 puzzleHeight = height ? height : puzzleHeight;
@@ -522,17 +549,19 @@
                 solution.classList.toggle('show');
             });
             window.addEventListener('contextmenu', function (e) {
-                e.preventDefault();
                 if (!e.target.classList.contains('cell')) return;
                 if (e.target.classList.contains('active')) return;
                 while (target.parentNode !== document) {
                     if (target.parentNode.getAttribute('id') === 'solution') return
                     target = target.parentNode;
                 }
+                e.preventDefault();
                 e.target.classList.toggle('deactivate');
             })
-            window.addEventListener('click', clickHandler)
-            window.addEventListener('touchend', clickHandler)
+            window.addEventListener('click', activateCellHandler)
+            window.addEventListener('touchStart', touchHandler)
+            window.addEventListener('touchMove', touchHandler)
+            window.addEventListener('touchEnd', touchHandler)
             return {
                 public: topHintElement
             }
