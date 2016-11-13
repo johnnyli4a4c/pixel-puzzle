@@ -510,7 +510,7 @@
             }
             var touchEndHandler = function (e) {
                 if (e.target !== globalTouch.initialTarget) return;
-                activateCellHandler();
+                activateCellHandler(e);
             }
             var initializeGame = function (width, height) {
                 puzzleWidth = width ? width : puzzleWidth;
