@@ -461,7 +461,30 @@
                         board.childNodes[i].childNodes[j].classList.remove('active');
                     }
                 }
-            }
+            };
+            var clickHandler = function (e) {
+                var row,
+                    col;
+                    target = e.target;
+                if (!e.target.classList.contains('cell')) return;
+                while (target.parentNode !== document) {
+                    if (target.parentNode.getAttribute('id') === 'solution') return
+                    target = target.parentNode;
+                }
+                if (e.target.classList.contains('deactivate')) return;
+                e.target.classList.toggle('active');
+                row = e.target.getAttribute('data-row');
+                col = e.target.getAttribute('data-col');
+
+                grid[row][col] = !grid[row][col]
+                updateTopHintsState();
+                updateLeftHintsState();
+                if (checkWinCondition()) {
+                    setTimeout(function () {
+                        alert("YOU WIN");
+                    }, 200);
+                }
+            };
             var initializeGame = function (width, height) {
                 puzzleWidth = width ? width : puzzleWidth;
                 puzzleHeight = height ? height : puzzleHeight;
@@ -487,7 +510,7 @@
                 generateSolution();
                 updateTopHintsState();
                 updateLeftHintsState();  
-            }
+            };
             initializeGame();
             controls.addEventListener('click', function (e) {
                 var difficulty;
@@ -508,29 +531,8 @@
                 }
                 e.target.classList.toggle('deactivate');
             })
-            window.addEventListener('click', function (e) {
-                var row,
-                    col;
-                    target = e.target;
-                if (!e.target.classList.contains('cell')) return;
-                while (target.parentNode !== document) {
-                    if (target.parentNode.getAttribute('id') === 'solution') return
-                    target = target.parentNode;
-                }
-                if (e.target.classList.contains('deactivate')) return;
-                e.target.classList.toggle('active');
-                row = e.target.getAttribute('data-row');
-                col = e.target.getAttribute('data-col');
-
-                grid[row][col] = !grid[row][col]
-                updateTopHintsState();
-                updateLeftHintsState();
-                if (checkWinCondition()) {
-                    setTimeout(function () {
-                        alert("YOU WIN");
-                    }, 200);
-                }
-            })
+            window.addEventListener('click', clickHandler)
+            window.addEventListener('touchend', clickHandler)
             return {
                 public: topHintElement
             }
