@@ -559,9 +559,9 @@
                 e.target.classList.toggle('deactivate');
             })
             window.addEventListener('click', activateCellHandler)
-            window.addEventListener('touchStart', touchHandler)
-            window.addEventListener('touchMove', touchHandler)
-            window.addEventListener('touchEnd', touchHandler)
+            window.addEventListener('touchStart', touchStartHandler)
+            window.addEventListener('touchMove', touchMoveHandler)
+            window.addEventListener('touchEnd', touchEndHandler)
             return {
                 public: topHintElement
             }
