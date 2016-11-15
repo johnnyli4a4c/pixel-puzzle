@@ -1,12 +1,63 @@
 <html>
 <head>
     <style>
-        h1 {
+        h2 {
             text-align: center;
+            margin: 5px;
+        }
+        .possimpible .hint-cell-left {
+            float: left;
+            width: 144px;
+            height: 14px;
+            text-align: left;
+        }
+        .possimpible .hint-cell-top {
+            text-align: center;
+            float: left;
+            height: 230px;
+            width: 14px;
+        }
+        .possimpible.hint-top {
+            margin-left: 150px;
+        }
+        .possimpible.hint-left {
+            width: 150px;
+            font-size: 14px;
+        }
+        .possimpible .row {
+            height: 18px;
+        }
+        .possimpible .cell {
+            width: 14px;
+            height: 14px;
+        }
+        .easy.container {
+            margin-top: 120px;
+            height: 380px;
+            width: 220px;
+        }
+        .normal.container {
+            margin-top: 100px;
+            height: 400px;
+            width: 292px;
+        }
+        .hard.container {
+            margin-top: 80px;
+            height: 420px;
+            width: 340px;
+        }
+        .impossible.container {
+            margin-top: 0px;
+            height: 480px;
+            width: 460px;
+        }
+        .possimpible.container {
+            width: 750px;
+            height: 824px;
         }
         .container {
             margin: 0 auto;
-            width: 860px;
+            width: 900px;
             height: 475px;
         }
         #board {
@@ -74,13 +125,13 @@
         }
         #controls {
             margin: 20px auto;
-            width: 800px;
+            width: 755px;
         }
     </style>
 </head>
 <body>
-    <h1>Pixel Puzzle - βeta</h1>
-    <div class="container clearfix">
+    <h2>Pixel Puzzle - βeta</h2>
+    <div id="main-container" class="container clearfix">
         <div id="hint-top" class="hint-top clearfix">
             <div class="hint-cell hint-cell-top">
                 1<br/>
@@ -110,21 +161,24 @@
         <div id="solution" class="solution"></div>
     </div>
     <div id="controls">
-        <button class="newPuzzle" data-difficulty="5" style="margin-left:10px;background:#42e5f4" >New Easy Puzzle</button>
-        <button class="newPuzzle" data-difficulty="8" style="margin-left:10px;background:#e5f92c" >New Normal Puzzle</button>
-        <button class="newPuzzle" data-difficulty="10" style="margin-left:10px;background:#e52222;color:#FFF" >New Hard Puzzle</button>
-        <button class="newPuzzle" data-difficulty="15" style="margin-left:10px;background:#47073d;color:#FFF" >New Impossible Puzzle</button>
-        <button id="showSolution" style="margin-left:10px;opacity:0.5" >Show Solution</button>
+        <button class="newPuzzle" data-difficulty="5" style="margin:0 5px;background:#42e5f4" >New Easy Puzzle</button>
+        <button class="newPuzzle" data-difficulty="8" style="margin:0 5px;background:#e5f92c" >New Normal Puzzle</button>
+        <button class="newPuzzle" data-difficulty="10" style="margin:0 5px;background:#e52222;color:#FFF" >New Hard Puzzle</button>
+        <button class="newPuzzle" data-difficulty="15" style="margin:0 5px;background:#47073d;color:#FFF" >New Impossible Puzzle</button>
+        <button class="newPuzzle" data-difficulty="30" style="margin:0 5px;background:#47073d;color:#FFF" >New Possimpible Puzzle</button>
+
+        <button id="show-solution" style="display:none; margin-left:10px;opacity:0.5" >Show Solution</button>
     </div>
     <script>
         var PP = (function () {
             var boardElement = document.getElementById('board');
             var topHintElement = document.getElementById('hint-top');
             var leftHintElement = document.getElementById('hint-left');
-            var showSolutionButton = document.getElementById('showSolution');
+            var showSolutionButton = document.getElementById('show-solution');
             var controls = document.getElementById('controls');
             var solution = document.getElementById('solution');
             var newPuzzleButton = document.getElementById('newPuzzle')
+            var mainContainer = document.getElementById('main-container');
             var puzzle;
             var grid;
             var topHints;
@@ -137,7 +191,14 @@
                 startX: 0,
                 startY: 0,
                 initialTarget: null
-            }
+            };
+            var difficultyMap = {
+                5: 'easy',
+                8: 'normal',
+                10: 'hard',
+                15: 'impossible',
+                30: 'possimpible'
+            };
             var checkWinCondition = function () {
                 return checkTopHints() && checkLeftHints();
             }
@@ -199,7 +260,13 @@
                 var hints = topHints[hintIndex];
 
                 if (hintIndex < 0 || hintIndex > topHints.length - 1) throw "Invalid topHint Index";
-                if (topHintsLength === 0) return true;
+
+                if (topHintsLength === 0) {
+                    for (var i=0; i < puzzleHeight; i++) {
+                        if (grid[i][hintIndex]) return false;
+                    }
+                    return true;
+                }
 
                 for (var i=0; i < hints.length; i++) {
                     currentCount = 0;
@@ -243,7 +310,12 @@
                 var hints = leftHints[hintIndex];
 
                 if (hintIndex < 0 || hintIndex > leftHints.length - 1) throw "Invalid leftHint Index";
-                if (leftHintsLength === 0) return true;
+                if (leftHintsLength === 0) {
+                    for (var i=0; i < puzzleWidth; i++) {
+                        if (grid[hintIndex][i]) return false;
+                    }
+                    return true;
+                }
 
                 for (var i=0; i < hints.length; i++) {
                     currentCount = 0;
@@ -422,7 +494,10 @@
                 var newBoard = document.createElement('div');
                 var cell;
                 var row;
+
                 newBoard.id='board';
+                newBoard.classList.add(difficultyMap[puzzleWidth])
+
                 for (var i=0; i < height; i++) {
                     row = generateBoardRow();
                     for (var j=0; j < width; j++) {
@@ -440,7 +515,7 @@
 
             var generateTopHints = function (width, height) {
                 var newTopHintElement = document.createElement('div');
-                newTopHintElement.classList.add('hint-top', 'clearfix');
+                newTopHintElement.classList.add('hint-top', 'clearfix', difficultyMap[puzzleWidth]);
                 newTopHintElement.id = 'hint-top';
                 for (var i=0; i < width; i++) {
                     newTopHintElement.appendChild(generateTopHintCell(i));
@@ -451,7 +526,7 @@
 
             var generateLeftHints = function (width, height) {
                 var newLeftHintElement = document.createElement('div');
-                newLeftHintElement.classList.add('hint-left', 'clearfix');
+                newLeftHintElement.classList.add('hint-left', 'clearfix', difficultyMap[puzzleWidth]);
                 newLeftHintElement.id = 'hint-left';
                 for (var i=0; i < height; i++) {
                     newLeftHintElement.appendChild(generateLeftHintCell(i));
@@ -531,8 +606,10 @@
                 //     }
                 //     return arr;
                 // })();
-                generateTopHints(puzzleWidth,puzzleHeight)
-                generateLeftHints(puzzleWidth,puzzleHeight)
+                mainContainer.classList.remove('easy', 'normal', 'hard', 'impossible', 'possimpible');
+                mainContainer.classList.add(difficultyMap[puzzleWidth]);
+                generateTopHints(puzzleWidth,puzzleHeight);
+                generateLeftHints(puzzleWidth,puzzleHeight);
                 generateBoard(puzzleWidth,puzzleHeight);
                 generateSolution();
                 updateTopHintsState();
@@ -549,6 +626,7 @@
                 solution.classList.toggle('show');
             });
             window.addEventListener('contextmenu', function (e) {
+                var target = e.target;
                 if (!e.target.classList.contains('cell')) return;
                 if (e.target.classList.contains('active')) return;
                 while (target.parentNode !== document) {
