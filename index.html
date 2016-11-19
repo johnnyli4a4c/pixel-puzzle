@@ -543,11 +543,11 @@
             };
             var checkTargetIsCell = function (target) {
                 if (!target.classList.contains('cell')) return false;
+                if (target.classList.contains('deactivate')) return false;
                 while (target.parentNode !== document) {
                     if (target.parentNode.getAttribute('id') === 'solution') return false
                     target = target.parentNode;
                 }
-                if (target.classList.contains('deactivate')) return false;
                 return true;                
             };
             var activateCellHandler = function (e) {
